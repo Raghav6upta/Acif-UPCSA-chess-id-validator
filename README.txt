@@ -23,10 +23,3 @@ How to run
    python app.py
 5. A browser window should open automatically.
 
-Next phase
-- Test AICF with the sample workbook.
-- Test UPCSA with the sample workbook.
-- Verify every desired field against real pages.
-- Add progress/cancel/retry controls.
-- Add stronger HTML parsing and logging.
-- Package as a one-click Windows executable so the teacher never needs Python.
