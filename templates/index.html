@@ -1,0 +1,106 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chess Player Verifier</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#f5f7fb;color:#172033}
+.wrap{max-width:850px;margin:60px auto;padding:0 20px}.card{background:#fff;border:1px solid #e3e8f0;border-radius:18px;padding:32px;box-shadow:0 12px 40px rgba(20,30,50,.08)}
+h1{margin:0 0 8px;font-size:30px}.sub{color:#667085;margin:0 0 28px}.modes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.mode{border:2px solid #e1e6ee;border-radius:14px;padding:18px;cursor:pointer;background:#fff}.mode.selected{border-color:#2457d6;background:#f5f8ff}.mode b{display:block;font-size:18px;margin-bottom:5px}.mode span{font-size:13px;color:#667085}
+.drop{border:2px dashed #b8c2d3;border-radius:14px;padding:34px;text-align:center;cursor:pointer}.drop:hover{background:#fafbff}.file{margin-top:12px;color:#344054}
+button{width:100%;margin-top:20px;padding:14px 18px;border:0;border-radius:11px;background:#2457d6;color:#fff;font-size:16px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+.status{margin-top:20px;padding:14px;border-radius:10px;background:#f3f5f8;white-space:pre-wrap;display:none}.note{font-size:12px;color:#667085;margin-top:18px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+<h1>♟ Chess Player Verifier</h1>
+<p class="sub">Keep the original Excel and append verified federation data.</p>
+
+<div class="modes">
+  <div class="mode selected" data-mode="aicf">
+    <b>AICF</b><span>Uses the AICF player API</span>
+  </div>
+  <div class="mode" data-mode="upcsa">
+    <b>UPCSA</b><span>Reads the UPCSA player page</span>
+  </div>
+</div>
+
+<input id="file" type="file" accept=".xlsx,.xls" hidden>
+<div id="drop" class="drop">Click here to choose the Excel file<div id="filename" class="file">No file selected</div></div>
+
+<button id="process" disabled>Process Excel</button>
+<div id="status" class="status"></div>
+<p class="note">This v0.1 is a local prototype. It appends data to the existing workbook; it does not replace the original columns.</p>
+</div>
+</div>
+
+<script>
+let mode = "aicf";
+let selectedFile = null;
+
+document.querySelectorAll(".mode").forEach(el => {
+  el.onclick = () => {
+    document.querySelectorAll(".mode").forEach(x => x.classList.remove("selected"));
+    el.classList.add("selected");
+    mode = el.dataset.mode;
+  };
+});
+
+const fileInput = document.getElementById("file");
+const drop = document.getElementById("drop");
+const processBtn = document.getElementById("process");
+const filename = document.getElementById("filename");
+const status = document.getElementById("status");
+
+drop.onclick = () => fileInput.click();
+
+fileInput.onchange = () => {
+  selectedFile = fileInput.files[0];
+  filename.textContent = selectedFile ? selectedFile.name : "No file selected";
+  processBtn.disabled = !selectedFile;
+};
+
+processBtn.onclick = async () => {
+  if (!selectedFile) return;
+  processBtn.disabled = true;
+  status.style.display = "block";
+  status.textContent = "Processing...\\n\\nPlease keep this window open.";
+
+  const fd = new FormData();
+  fd.append("file", selectedFile);
+  fd.append("mode", mode);
+
+  try {
+    const res = await fetch("/process", { method: "POST", body: fd });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Server returned ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    const cd = res.headers.get("Content-Disposition") || "";
+    const match = cd.match(/filename="?([^"]+)"?/i);
+    const outName = match ? match[1] : "players_verified.xlsx";
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = outName;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    status.textContent = "Done!\\n\\nThe verified Excel has been downloaded.";
+  } catch (e) {
+    status.textContent = "Failed:\\n\\n" + e.message;
+  } finally {
+    processBtn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>
