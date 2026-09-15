@@ -1,0 +1,31 @@
+{
+  "name": "acif-upcsa-chess-id-validator",
+  "version": "1.0.0",
+  "description": "Cloudflare-ready version of the local chess player verifier.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raghav6upta/Acif-UPCSA-chess-id-validator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Raghav6upta/Acif-UPCSA-chess-id-validator/issues"
+  },
+  "homepage": "https://github.com/Raghav6upta/Acif-UPCSA-chess-id-validator#readme",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "hono": "^4.13.8",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260915.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.131.2"
+  }
+}
